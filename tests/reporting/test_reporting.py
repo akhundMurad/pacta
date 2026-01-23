@@ -449,6 +449,101 @@ def test_text_renderer_normal_no_violations(runinfo):
 
 
 # ----------------------------
+# Tests: TextReportRenderer human-readable explanations (always enabled)
+# ----------------------------
+
+
+def test_text_renderer_shows_human_readable_explanation(runinfo):
+    from pacta.reporting.builder import DefaultReportBuilder
+    from pacta.reporting.renderers.text import TextReportRenderer
+
+    violations = [
+        {
+            "rule": {"id": "r1", "name": "No domain -> infra", "severity": "error"},
+            "message": "Domain depends on Infra",
+            "status": "new",
+            "context": {
+                "target": "dependency",
+                "dep_type": "import",
+                "src_fqname": "app.domain.service",
+                "dst_fqname": "app.infra.database",
+                "src_layer": "domain",
+                "dst_layer": "infra",
+            },
+        }
+    ]
+    report = DefaultReportBuilder(tool="pacta", version="0.1.0").build(run=runinfo, violations=violations)
+    text = TextReportRenderer(verbosity="normal").render(report)
+
+    # Should contain human-readable explanation by default
+    assert "app.domain.service" in text
+    assert "app.infra.database" in text
+    assert "domain layer" in text
+    assert "infra layer" in text
+    assert "imports" in text
+
+
+def test_text_renderer_node_violation_shows_explanation(runinfo):
+    from pacta.reporting.builder import DefaultReportBuilder
+    from pacta.reporting.renderers.text import TextReportRenderer
+
+    violations = [
+        {
+            "rule": {"id": "r2", "name": "No services in domain", "severity": "warning"},
+            "message": "Services should not be in domain layer",
+            "status": "new",
+            "context": {
+                "target": "node",
+                "fqname": "app.domain.BillingService",
+                "kind": "class",
+                "layer": "domain",
+                "container": "backend",
+            },
+        }
+    ]
+    report = DefaultReportBuilder(tool="pacta", version="0.1.0").build(run=runinfo, violations=violations)
+    text = TextReportRenderer(verbosity="normal").render(report)
+
+    # Should contain human-readable node violation explanation
+    assert "class" in text
+    assert "app.domain.BillingService" in text
+    assert "domain layer" in text
+    assert "container backend" in text
+
+
+def test_text_renderer_explanation_works_with_all_verbosity_levels(runinfo):
+    from pacta.reporting.builder import DefaultReportBuilder
+    from pacta.reporting.renderers.text import TextReportRenderer
+
+    violations = [
+        {
+            "rule": {"id": "r1", "name": "Test", "severity": "error"},
+            "message": "Test message",
+            "status": "new",
+            "context": {
+                "target": "dependency",
+                "dep_type": "import",
+                "src_fqname": "a.b",
+                "dst_fqname": "c.d",
+            },
+        }
+    ]
+    report = DefaultReportBuilder(tool="pacta", version="0.1.0").build(run=runinfo, violations=violations)
+
+    # Test with normal verbosity - should show human-readable explanation
+    text_normal = TextReportRenderer(verbosity="normal").render(report)
+    assert "imports" in text_normal
+
+    # Test with verbose verbosity - should also show explanation
+    text_verbose = TextReportRenderer(verbosity="verbose").render(report)
+    assert "imports" in text_verbose
+
+    # quiet mode doesn't show violations
+    text_quiet = TextReportRenderer(verbosity="quiet").render(report)
+    assert "imports" not in text_quiet  # quiet mode only shows summary
+
+
+# ----------------------------
 # Edge-cases: normalization of partial locations
 # ----------------------------
 

@@ -10,46 +10,63 @@ from pacta.rules.types import Rule, RuleTarget
 
 def explain_violation(v: Violation) -> str:
     """
-    Turn a Violation into a compact explanation suitable for CLI/IDE tooltips.
+    Turn a Violation into a human-readable explanation suitable for CLI/IDE tooltips.
     """
     ctx = v.context or {}
     target = ctx.get("target")
 
     if target == "dependency":
-        dep_type = ctx.get("dep_type", "?")
-        src = ctx.get("src_fqname") or ctx.get("src_id") or "<?>"
-        dst = ctx.get("dst_fqname") or ctx.get("dst_id") or "<?>"
+        dep_type = ctx.get("dep_type", "dependency")
+        src = ctx.get("src_fqname") or ctx.get("src_id") or "unknown"
+        dst = ctx.get("dst_fqname") or ctx.get("dst_id") or "unknown"
         src_layer = ctx.get("src_layer")
         dst_layer = ctx.get("dst_layer")
 
-        parts: list[str] = []
-        parts.append(f"Dependency violation ({dep_type}).")
-        parts.append(f"{src} -> {dst}")
-        if src_layer or dst_layer:
-            parts.append(f"layers: {src_layer or '?'} -> {dst_layer or '?'}")
-        return " ".join(parts)
+        # Build natural language explanation
+        verb = _dep_type_verb(dep_type)
+
+        if src_layer and dst_layer:
+            return f'"{src}" in {src_layer} layer {verb} "{dst}" in {dst_layer} layer'
+        else:
+            return f'"{src}" {verb} "{dst}"'
 
     if target == "node":
-        ident = ctx.get("fqname") or ctx.get("node_id") or "<?>"
-        kind = ctx.get("kind", "?")
+        ident = ctx.get("fqname") or ctx.get("node_id") or "unknown"
+        kind = ctx.get("kind", "element")
         layer = ctx.get("layer")
-        context = ctx.get("context")
+        context_name = ctx.get("context")
         container = ctx.get("container")
 
-        parts = [f"Node violation ({kind}): {ident}"]
-        extras = []
+        # Build natural language explanation
+        location_parts = []
         if layer:
-            extras.append(f"layer={layer}")
-        if context:
-            extras.append(f"context={context}")
+            location_parts.append(f"{layer} layer")
         if container:
-            extras.append(f"container={container}")
-        if extras:
-            parts.append(f"({', '.join(extras)})")
-        return " ".join(parts)
+            location_parts.append(f"container {container}")
+        if context_name:
+            location_parts.append(f"context {context_name}")
+
+        if location_parts:
+            location = ", ".join(location_parts)
+            return f'{kind} "{ident}" found in {location}'
+        else:
+            return f'{kind} "{ident}" violates architectural constraint'
 
     # Fallback
     return v.message
+
+
+def _dep_type_verb(dep_type: str) -> str:
+    """Convert dependency type to a human-readable verb."""
+    verbs = {
+        "import": "imports",
+        "call": "calls",
+        "inherit": "inherits from",
+        "instantiate": "instantiates",
+        "use": "uses",
+        "reference": "references",
+    }
+    return verbs.get(dep_type, f"depends on ({dep_type})")
 
 
 def explain_rule(rule: Rule) -> str:

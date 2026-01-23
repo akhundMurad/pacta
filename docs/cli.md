@@ -46,6 +46,21 @@ pacta scan . --model architecture.yml --rules rules.pacta.yml --baseline baselin
 pacta scan . --model architecture.yml --rules rules.pacta.yml --format json
 ```
 
+**Example output:**
+
+```
+✗ 1 violations (1 error)
+
+  ✗ ERROR [no-domain-infra] Domain cannot depend on Infrastructure @ src/domain/service.py:5:1
+    status: new
+    "app.domain.BillingService" in domain layer imports "app.infra.PostgresClient" in infra layer
+```
+
+Violations are displayed with human-readable explanations:
+
+- **For dependency violations:** Shows which module imports/calls/uses another, with their respective layers
+- **For node violations:** Shows the element type and where it was found (layer, container, context)
+
 ## snapshot save
 
 Save architecture snapshot without running rules.

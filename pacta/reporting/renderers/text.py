@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pacta.reporting.types import EngineError, Report, Violation
+from pacta.rules.explain import explain_violation
 
 Verbosity = Literal["quiet", "normal", "verbose"]
 
@@ -166,7 +167,8 @@ class TextReportRenderer:
         # Always show status
         out.append(f"    status: {v.status}")
 
-        out.append(f"    {v.message}")
+        # Always show human-readable explanation
+        out.append(f"    {explain_violation(v)}")
 
         # Show suggestion in normal and verbose modes
         if verbosity in ("normal", "verbose") and v.suggestion:

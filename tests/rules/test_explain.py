@@ -32,12 +32,12 @@ def test_explain_violation_dependency_contains_key_info():
     )
 
     text = explain_violation(v)
-    assert "Dependency violation" in text
-    assert "import" in text
+    # Human-readable format: "X" in Y layer imports "Z" in W layer
     assert "app.domain" in text
     assert "app.infra.db" in text
-    assert "domain" in text
-    assert "infra" in text
+    assert "domain layer" in text
+    assert "infra layer" in text
+    assert "imports" in text
 
 
 def test_explain_violation_dependency_falls_back_to_ids_if_fqname_missing():
@@ -53,8 +53,10 @@ def test_explain_violation_dependency_falls_back_to_ids_if_fqname_missing():
     )
 
     text = explain_violation(v)
+    # Falls back to IDs when fqname not available
     assert "python://repo::a" in text
     assert "python://repo::b" in text
+    assert "imports" in text
 
 
 def test_explain_violation_node_contains_kind_and_identity():
@@ -72,12 +74,12 @@ def test_explain_violation_node_contains_kind_and_identity():
     )
 
     text = explain_violation(v)
-    assert "Node violation" in text
+    # Human-readable format: kind "name" found in layer, container, context
     assert "class" in text
     assert "app.domain.BillingService" in text
-    assert "layer=domain" in text
-    assert "context=billing" in text
-    assert "container=billing" in text
+    assert "domain layer" in text
+    assert "context billing" in text
+    assert "container billing" in text
 
 
 def test_explain_violation_unknown_target_falls_back_to_message():

@@ -298,6 +298,79 @@ class TestArgumentParsing:
         assert mock_scan.call_args.kwargs["mode"] == "changed_only"
 
 
+class TestHumanReadableOutput:
+    """Tests for human-readable violation output (always enabled by default)."""
+
+    def test_scan_shows_human_readable_explanation(self, tmp_path, capsys):
+        """Test that scan command shows human-readable explanations by default."""
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+
+        violation = Violation(
+            rule=RuleRef(
+                id="test_rule",
+                name="Test Rule",
+                severity=Severity.ERROR,
+            ),
+            message="Test violation message",
+            location=None,
+            status="new",
+            context={
+                "target": "dependency",
+                "dep_type": "import",
+                "src_fqname": "app.domain",
+                "dst_fqname": "app.infra",
+                "src_layer": "domain",
+                "dst_layer": "infra",
+            },
+        )
+
+        mock_report = create_test_report(repo_root, violations=[violation])
+
+        with patch("pacta.cli.scan.run_engine_scan", return_value=mock_report):
+            exit_code = main(["scan", str(repo_root)])
+
+        assert exit_code == 1  # Has violations
+        captured = capsys.readouterr()
+        # Human-readable explanation is always shown
+        assert "app.domain" in captured.out
+        assert "app.infra" in captured.out
+        assert "imports" in captured.out
+
+    def test_scan_verbose_shows_human_readable_explanation(self, tmp_path, capsys):
+        """Test that verbose mode also shows human-readable explanations."""
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+
+        violation = Violation(
+            rule=RuleRef(
+                id="test_rule",
+                name="Test Rule",
+                severity=Severity.ERROR,
+            ),
+            message="Test violation message",
+            location=None,
+            status="new",
+            context={
+                "target": "dependency",
+                "dep_type": "import",
+                "src_fqname": "app.domain",
+                "dst_fqname": "app.infra",
+            },
+        )
+
+        mock_report = create_test_report(repo_root, violations=[violation])
+
+        with patch("pacta.cli.scan.run_engine_scan", return_value=mock_report):
+            exit_code = main(["scan", str(repo_root), "--verbose"])
+
+        assert exit_code == 1
+        captured = capsys.readouterr()
+        # Should have explanation and verbose details
+        assert "imports" in captured.out
+        assert "Summary:" in captured.out  # verbose marker
+
+
 class TestErrorHandling:
     """Tests for CLI error handling."""
 
