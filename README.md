@@ -112,6 +112,14 @@ pacta scan . --model architecture.yml --rules rules.pacta.yml --baseline baselin
 - [Architecture Model](https://akhundmurad.github.io/pacta/architecture/)
 - [Rules DSL](https://akhundmurad.github.io/pacta/rules/)
 
+## Roadmap (short)
+
+- Open-source CLI and analysis engine
+- Proprietary hosted service with:
+  - Cross-repository insights
+  - Historical trend analysis
+  - Team-level governance and reporting
+
 ## License
 
-AGPL-3.0-only. See [LICENSE](./LICENSE).
+Apache-2.0. See [LICENSE](./LICENSE).

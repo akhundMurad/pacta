@@ -1,18 +1,3 @@
-# SPDX-License-Identifier: AGPL-3.0-only
-#
-# Copyright (c) 2026 Pacta Contributors
-#
-# This file is part of Pacta.
-#
-# Pacta is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, version 3 only.
-#
-# Pacta is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the GNU Affero General Public License for more details.
-
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
@@ -84,7 +69,7 @@ class DefaultReportBuilder:
     - Summary counts
     """
 
-    def __init__(self, *, tool: str = "pacta", version: str = "0.0.1") -> None:
+    def __init__(self, *, tool: str = "pacta", version: str = "0.0.2") -> None:
         self._tool = tool
         self._version = version
 

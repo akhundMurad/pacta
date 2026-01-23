@@ -1,10 +1,10 @@
 [project]
 name = "pacta"
-version = "0.0.1"
+version = "0.0.2"
 description = "A Python tool for enforcing and visualizing software architecture."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "AGPL-3.0-only" }
+license = { file = "LICENSE" }
 keywords = ["architecture", "testing", "static-analysis", "clean-architecture"]
 
 authors = [
@@ -14,7 +14,7 @@ authors = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
