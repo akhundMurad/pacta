@@ -1,5 +1,5 @@
 site_name: Pacta
-site_description: Architecture Testing & Architecture-as-Code
+site_description: Architecture Governance & Architecture-as-Code
 site_url: https://akhundmurad.github.io/pacta/
 
 repo_name: akhundMurad/pacta
@@ -9,17 +9,29 @@ theme:
   name: material
   features:
     - navigation.sections
+    - navigation.expand
     - content.code.copy
+    - content.tabs.link
   palette:
     - scheme: default
       primary: indigo
       accent: indigo
+  icon:
+    repo: fontawesome/brands/github
 
 nav:
   - Home: index.md
-  - CLI Reference: cli.md
-  - Architecture Model: architecture.md
-  - Rules DSL: rules.md
+  - Getting Started: getting-started.md
+  - User Guide:
+    - CLI Reference: cli.md
+    - Architecture Model: architecture.md
+    - Rules DSL: rules.md
+  - Integration:
+    - CI/CD: ci-integration.md
+  - Reference:
+    - Configuration: configuration.md
+    - Troubleshooting: troubleshooting.md
+    - Changelog: changelog.md
 
 markdown_extensions:
   - admonition
@@ -29,3 +41,7 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables

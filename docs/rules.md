@@ -15,7 +15,7 @@ rule:
     all:
       - condition1
       - condition2
-  action: forbid | allow
+  action: forbid | allow | require
   message: Violation message
   suggestion: How to fix
 ```
@@ -30,8 +30,8 @@ rule:
 | `severity` | string | Yes | `error`, `warning`, or `info` |
 | `target` | string | Yes | What to evaluate (e.g., `dependency`) |
 | `when` | object | Yes | Conditions for the rule |
-| `action` | string | Yes | `forbid` or `allow` |
-| `message` | string | Yes | Message shown on violation |
+| `action` | string | Yes | `forbid`, `allow`, or `require` |
+| `message` | string | No | Message shown on violation (auto-generated if omitted) |
 | `suggestion` | string | No | Remediation guidance |
 
 ## Conditions
