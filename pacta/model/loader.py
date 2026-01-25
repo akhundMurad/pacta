@@ -214,6 +214,7 @@ class DefaultArchitectureModelLoader:
                 out[lid] = Layer(
                     id=lid,
                     patterns=patterns,
+                    name=spec.get("name"),
                     description=spec.get("description"),
                 )
                 continue

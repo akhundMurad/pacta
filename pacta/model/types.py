@@ -24,6 +24,7 @@ class Layer:
 
     id: str
     patterns: tuple[str, ...]  # glob patterns
+    name: str | None = None
     description: str | None = None
 
 
