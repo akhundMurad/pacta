@@ -1,35 +1,20 @@
 # Getting Started
 
-This guide walks you through setting up Pacta in your Python project to enforce architectural rules.
+You're six months into a project. The codebase that started clean now has database calls in the domain layer, circular dependencies nobody remembers adding, and a "quick fix" that coupled two services together. You know the architecture drifted — but when? How much? Is it getting worse?
 
-## Prerequisites
+Pacta answers these questions. It versions your architecture like Git versions your code, so you can see exactly how your system evolves over time.
 
-- Python 3.10 or later
-- A Python project with importable modules
+---
 
-## Installation
+## Your First Snapshot
 
-Install Pacta from PyPI:
+Install Pacta:
 
 ```bash
 pip install pacta
 ```
 
-For chart image export (PNG/SVG), install with visualization support:
-
-```bash
-pip install pacta[viz]
-```
-
-Verify the installation:
-
-```bash
-pacta --help
-```
-
-## Step 1: Define Your Architecture
-
-Create an `architecture.yml` file in your project root. This file defines your system structure and architectural layers.
+Create `architecture.yml` to describe your system's layers:
 
 ```yaml
 version: 1
@@ -39,44 +24,91 @@ system:
 
 containers:
   backend:
-    name: Backend Service
     code:
-      roots:
-        - src
+      roots: [src]
       layers:
         domain:
-          name: Domain Layer
-          description: Core business logic
-          patterns:
-            - src/domain/**
+          patterns: [src/domain/**]
         application:
-          name: Application Layer
-          description: Use cases and orchestration
-          patterns:
-            - src/application/**
+          patterns: [src/application/**]
         infra:
-          name: Infrastructure Layer
-          description: External services, databases, APIs
-          patterns:
-            - src/infra/**
+          patterns: [src/infra/**]
 ```
 
-**Key concepts:**
+Now capture a snapshot:
 
-| Concept | Description |
-|---------|-------------|
-| `system` | Top-level identifier for your project |
-| `containers` | Deployable units (services, apps) |
-| `roots` | Directories to scan for code |
-| `layers` | Architectural boundaries within a container |
-| `patterns` | Glob patterns mapping code to layers |
+```bash
+pacta snapshot . --model architecture.yml
+```
 
-## Step 2: Define Your Rules
+Pacta just analyzed every module and dependency in your codebase and stored a content-addressed snapshot in `.pacta/`. This snapshot is immutable — a permanent record of your architecture at this moment.
 
-Create a `rules.pacta.yml` file to define architectural constraints:
+---
+
+## Watching Architecture Change
+
+A week passes. Your team ships features, fixes bugs, refactors code. Run another snapshot:
+
+```bash
+pacta snapshot . --model architecture.yml
+```
+
+Now you have two points in time. See what changed:
+
+```bash
+pacta history show --last 5
+```
+
+```
+TIMESTAMP            SNAPSHOT    NODES  EDGES  VIOLATIONS
+2024-01-22 14:30:00  f7a3c2...   48     82     0
+2024-01-15 10:00:00  abc123...   45     78     0
+```
+
+Three new modules, four new dependencies. But are things getting better or worse? View the trend:
+
+```bash
+pacta history trends . --metric edges
+```
+
+```
+Edge Count Trend (5 entries)
+============================
+
+ 82 │                              ●
+    │               ●--------------
+ 79 │    ●----------
+    │
+ 76 ├●---
+    └────────────────────────────────
+      Jan 15                   Jan 22
+
+Trend: ↑ Increasing (+6 over period)
+First: 76 edges (Jan 15)
+Last:  82 edges (Jan 22)
+
+Average: 79 edges
+Min: 76, Max: 82
+```
+
+Coupling is climbing. You caught drift early — before it became a problem someone complains about in a retrospective.
+
+Need to share this with the team? Export as an image:
+
+```bash
+pip install pacta[viz]  # one-time install for chart export
+pacta history trends . --metric edges --output coupling-trend.png
+```
+
+This generates a publication-ready chart with trend annotations — drop it into a PR, a Slack thread, or your architecture docs.
+
+---
+
+## Adding Guardrails
+
+You want to protect what you've built. Create `rules.pacta.yml`:
 
 ```yaml
-# Domain layer must not depend on Infrastructure
 rule:
   id: no_domain_to_infra
   name: Domain cannot depend on Infrastructure
@@ -88,129 +120,104 @@ rule:
       - to.layer == infra
   action: forbid
   message: Domain layer must not import from Infrastructure
-  suggestion: Use dependency injection and define interfaces in the domain layer
-
-# Domain layer must not depend on Application
-rule:
-  id: no_domain_to_application
-  name: Domain cannot depend on Application
-  severity: error
-  target: dependency
-  when:
-    all:
-      - from.layer == domain
-      - to.layer == application
-  action: forbid
-  message: Domain layer must be independent of use cases
 ```
 
-**Rule structure:**
-
-| Field | Description |
-|-------|-------------|
-| `id` | Unique identifier for the rule |
-| `name` | Human-readable rule name |
-| `severity` | `error` (fails build), `warning`, or `info` |
-| `target` | What to evaluate (`dependency` or `node`) |
-| `when` | Conditions that trigger the rule |
-| `action` | `forbid`, `allow`, or `require` |
-| `message` | Explanation shown on violation |
-| `suggestion` | How to fix the violation |
-
-## Step 3: Run Your First Scan
-
-Scan your project:
+Run a scan with rules:
 
 ```bash
 pacta scan . --model architecture.yml --rules rules.pacta.yml
 ```
 
-**Example output with violations:**
-
 ```
-✗ 2 violations (2 error)
+✗ 2 violations (2 error) [2 new]
 
-  ✗ ERROR [no_domain_to_infra] Domain cannot depend on Infrastructure @ src/domain/user.py:3:1
+  ✗ ERROR [no_domain_to_infra] @ src/domain/user.py:3:1
     status: new
-    "myapp.domain.UserService" in domain layer imports "myapp.infra.Database" in infra layer
-
-  ✗ ERROR [no_domain_to_application] Domain cannot depend on Application @ src/domain/order.py:5:1
-    status: new
-    "myapp.domain.OrderEntity" in domain layer imports "myapp.application.OrderService" in application layer
+    Domain layer must not import from Infrastructure
 ```
 
-**Example output with no violations:**
+Two violations. But wait — this is a legacy codebase. You can't fix everything today.
 
-```
-✓ 0 violations
-```
+---
 
-## Step 4: Set Up Baseline (Optional)
+## Living with Legacy
 
-If you have existing violations you can't fix immediately, create a baseline. Future scans will only fail on *new* violations:
+Save the current state as a baseline:
 
 ```bash
-# Save current state as baseline
 pacta scan . --model architecture.yml --rules rules.pacta.yml --save-ref baseline
+```
 
-# Later scans compare against baseline
+Now future scans compare against this baseline:
+
+```bash
 pacta scan . --model architecture.yml --rules rules.pacta.yml --baseline baseline
 ```
 
-With a baseline, output shows violation status:
+New violations fail CI. Existing ones are tracked but tolerated. You can pay down debt at your own pace while preventing new debt from accumulating.
 
-```
-✗ 3 violations (2 error, 1 warning) [1 new, 2 existing]
-
-  ✗ ERROR [no_domain_to_infra] Domain cannot depend on Infrastructure @ src/domain/new_feature.py:3:1
-    status: new        <-- This is new, will fail CI
-
-  ✗ ERROR [no_domain_to_infra] Domain cannot depend on Infrastructure @ src/domain/legacy.py:10:1
-    status: existing   <-- Known issue, won't fail CI
-```
-
-## Step 5: Track History
-
-Every scan creates a content-addressed snapshot. View your architecture evolution:
+A month later, you check progress:
 
 ```bash
-# View timeline of snapshots
-pacta history show . --last 10
-
-# View violation trends over time
 pacta history trends . --metric violations
-
-# Export chart as image
-pacta history trends . --output violations.png
 ```
 
-## Project Structure Example
+```
+Violations Trend (8 entries)
+============================
 
-Here's a typical project structure with Pacta configuration:
+ 12 ├●
+    │ ●---●
+  8 │      ●---●
+    │           ●---●
+  4 │                ●
+    └────────────────────────────────
+      Feb 01                   Feb 28
+
+Trend: ↓ Improving (-8 over period)
+First: 12 violations (Feb 01)
+Last:  4 violations (Feb 28)
+
+Average: 7 violations
+Min: 4, Max: 12
+```
+
+You're winning. Export it for the next retro:
+
+```bash
+pacta history trends . --metric violations --output debt-burndown.png
+```
+
+---
+
+## The Bigger Picture
+
+Traditional architecture tools give you a pass/fail at a point in time. Pacta gives you something different: a versioned history of your architecture that you can query, compare, and trend.
+
+When someone asks "when did our architecture start degrading?" — you have the answer. When a refactor claims to improve coupling — you can measure it. When leadership wants proof that technical debt is being addressed — you have the chart.
+
+Architecture stops being something that "just happens" and becomes something you observe, understand, and control.
+
+---
+
+## Reference
+
+**Project structure:**
 
 ```
 myproject/
-├── architecture.yml      # Architecture definition
-├── rules.pacta.yml       # Architectural rules
+├── architecture.yml      # Layer definitions
+├── rules.pacta.yml       # Governance rules
 ├── src/
-│   ├── domain/           # Business logic (no external dependencies)
-│   │   ├── __init__.py
-│   │   ├── entities.py
-│   │   └── services.py
-│   ├── application/      # Use cases (orchestrates domain + infra)
-│   │   ├── __init__.py
-│   │   └── use_cases.py
-│   └── infra/            # External services (implements domain interfaces)
-│       ├── __init__.py
-│       ├── database.py
-│       └── api_client.py
-└── .pacta/               # Pacta data directory (auto-created)
-    └── snapshots/        # Content-addressed snapshot storage
+│   ├── domain/
+│   ├── application/
+│   └── infra/
+└── .pacta/               # Snapshot storage
 ```
 
-## Next Steps
+**Next steps:**
 
-- [CLI Reference](cli.md) - All commands and options
-- [Architecture Model](architecture.md) - Full configuration schema
-- [Rules DSL](rules.md) - Advanced rule conditions
-- [CI Integration](ci-integration.md) - GitHub Actions and GitLab CI setup
+- [CLI Reference](cli.md) — Commands and options
+- [Architecture Model](architecture.md) — Configuration schema
+- [Rules DSL](rules.md) — Rule conditions
+- [CI Integration](ci-integration.md) — Automate in your pipeline
