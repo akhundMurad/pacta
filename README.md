@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Architecture Governance & Architecture-as-Code</strong>
+  <strong>Architecture Insights, Governance & Versioned Design</strong>
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 
 > **Warning:** Experimental. Expect breaking changes until release 0.1.0
 
-Pacta is an architecture governance tool that helps teams define architectural intent, gain insights through metrics and historical trends, detect architectural drift, and evolve codebases safely without blocking delivery.
+Pacta turns software architecture into versioned, queryable data — so teams can see, compare, and reason about architectural change over time, not just block violations.
 
 ```bash
 pip install pacta
@@ -45,86 +45,23 @@ Codebases rot. Architecture degrades through small changes no one tracks. Pacta 
 
 ## What it does
 
-- **Static analysis** — parses Python AST, builds a system graph
-- **Layer enforcement** — domain can't import from infra, etc.
-- **Snapshots** — version your architecture like code
-- **Baseline mode** — fail only on *new* violations, not legacy debt
-- **History tracking** — view architecture evolution over time
-- **Trend analysis** — track violations, nodes, edges over time with charts
+- **Architecture snapshots** — version your architecture like code
+- **History & trends** — track how dependencies, coupling, and violations evolve over time
+- **Diffs** — compare architectural states like Git commits
+- **Metrics & insights** — nodes, edges, layers, instability, drift
+- **Rules & governance** — express architectural intent and enforce it incrementally
+- **Baseline mode** — govern change without being blocked by legacy debt
 
-## Quick example
+## Think of Pacta like Git for architecture
 
-> This is a minimal example. See the docs for advanced rules, baselines, and history.
+| Git | Pacta |
+|-----|-------|
+| `git commit` | `pacta scan` — capture an architectural snapshot |
+| `git log` | `pacta history` — timeline and trends of architectural states |
+| `git diff` | `pacta diff` — compare two snapshots |
+| branch protection | `rules.pacta.yml` — governance that prevents drift |
 
-Define your layers in `architecture.yml`:
-
-```yaml
-version: 1
-system:
-  id: myapp
-  name: My App
-
-containers:
-  backend:
-    code:
-      roots: [src]
-      layers:
-        domain:
-          patterns: [src/domain/**]
-        infra:
-          patterns: [src/infra/**]
-```
-
-Add rules in `rules.pacta.yml`:
-
-```yaml
-rule:
-  id: no_domain_to_infra
-  name: Domain cannot depend on Infrastructure
-  severity: error
-  target: dependency
-  when:
-    all:
-      - from.layer == domain
-      - to.layer == infra
-  action: forbid
-  message: Domain layer must not import from Infrastructure
-```
-
-Run it:
-
-```bash
-$ pacta scan . --model architecture.yml --rules rules.pacta.yml
-
-✗ 2 violations (2 error) [2 new]
-  ✗ ERROR [no_domain_to_infra] Domain cannot depend on Infrastructure @ src/domain/user.py:3:1
-    status: new
-    Domain layer must not import from Infrastructure
-```
-
-### Baseline workflow
-
-Got legacy violations? Save a baseline and only fail on new ones:
-
-```bash
-# Save current state
-pacta scan . --model architecture.yml --rules rules.pacta.yml --save-ref baseline
-
-# Later, in CI — fail only on new violations
-pacta scan . --model architecture.yml --rules rules.pacta.yml --baseline baseline
-```
-
-### History tracking
-
-Every scan creates a content-addressed snapshot. Inspect how your architecture evolves over time:
-
-```bash
-# View timeline
-$ pacta history show --last 5
-
-# View trends over time (violations, nodes, edges, coupling)
-$ pacta history trends .
-```
+See the [Getting Started](https://akhundmurad.github.io/pacta/getting-started/) guide for a full walkthrough.
 
 ## Docs
 
@@ -139,7 +76,7 @@ $ pacta history trends .
 - [x] Trend analysis with chart export
 - [ ] Architecture visualization (Mermaid, D2)
 - [ ] Health metrics (drift score, instability)
-- [ ] Optional hosted service (future):
+- [ ] Future: Architecture Intelligence Layer:
   - Cross-repository insights
   - Historical trend analysis
   - Team-level governance and reporting
