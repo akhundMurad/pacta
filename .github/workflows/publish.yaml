@@ -111,7 +111,7 @@ jobs:
           fi
 
           git commit -m "chore: update changelog for ${{ github.ref_name }}"
-          git push origin "$BRANCH"
+          git push --force-with-lease origin "$BRANCH"
 
       - name: Create pull request for changelog
         uses: peter-evans/create-pull-request@v6
