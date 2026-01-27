@@ -63,9 +63,9 @@ Violations are displayed with human-readable explanations:
 
 ## check
 
-Evaluate architectural rules against an existing snapshot.
+Evaluate architectural rules against an existing snapshot and write violations back into it.
 
-This separates the "capture" step (`snapshot save`) from the "verify" step (`check`), allowing you to snapshot your architecture once and check it against different rule sets or at different times.
+This separates the "capture" step (`snapshot save`) from the "verify" step (`check`), allowing you to snapshot your architecture once and check it against different rule sets or at different times. The existing snapshot object is updated in-place — no new snapshot is created.
 
 ```bash
 pacta check [PATH] [OPTIONS]
