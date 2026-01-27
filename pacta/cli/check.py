@@ -58,11 +58,16 @@ def run(
     engine = DefaultPactaEngine()
     result = engine.check(cfg, snapshot)
 
-    # Save updated snapshot with violations
-    refs_to_update = [ref]
+    # Update existing snapshot object in-place with violations
+    short_hash = store.resolve_ref(ref)
+    if short_hash is None:
+        # ref was a direct hash
+        short_hash = ref
+    store.update_object(short_hash, result.snapshot)
+
+    # Optionally save under an additional ref
     if save_ref and save_ref != ref:
-        refs_to_update.append(save_ref)
-    store.save(result.snapshot, refs=refs_to_update)
+        store.save(result.snapshot, refs=[save_ref])
 
     # Render report
     if fmt == "json":

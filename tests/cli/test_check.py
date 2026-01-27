@@ -146,8 +146,8 @@ class TestCheckCommand:
 
         assert exit_code == 1
 
-    def test_check_saves_updated_snapshot(self, tmp_path):
-        """Test that check saves the updated snapshot with violations."""
+    def test_check_updates_existing_snapshot(self, tmp_path):
+        """Test that check updates the existing snapshot object in-place."""
         repo_root = tmp_path / "repo"
         repo_root.mkdir()
 
@@ -162,13 +162,37 @@ class TestCheckCommand:
             store = mock_store_cls.return_value
             store.exists.return_value = True
             store.load.return_value = snapshot
+            store.resolve_ref.return_value = "abcd1234"
+            mock_engine_cls.return_value.check.return_value = check_result
+
+            main(["check", str(repo_root), "--ref", "myref"])
+
+        store.update_object.assert_called_once_with("abcd1234", check_result.snapshot)
+
+    def test_check_with_save_ref_creates_additional_ref(self, tmp_path):
+        """Test that --save-ref saves under an additional ref."""
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+
+        snapshot = _empty_snapshot(str(repo_root))
+        report = _make_report(str(repo_root))
+        check_result = CheckResult(snapshot=snapshot, report=report, diff=None)
+
+        with (
+            patch("pacta.cli.check.FsSnapshotStore") as mock_store_cls,
+            patch("pacta.cli.check.DefaultPactaEngine") as mock_engine_cls,
+        ):
+            store = mock_store_cls.return_value
+            store.exists.return_value = True
+            store.load.return_value = snapshot
+            store.resolve_ref.return_value = "abcd1234"
             mock_engine_cls.return_value.check.return_value = check_result
 
             main(["check", str(repo_root), "--ref", "myref", "--save-ref", "extra"])
 
+        store.update_object.assert_called_once()
         store.save.assert_called_once()
-        save_args = store.save.call_args
-        assert "myref" in save_args.kwargs.get("refs", save_args[1] if len(save_args) > 1 else [])
+        assert "extra" in store.save.call_args.kwargs.get("refs", store.save.call_args[1] if len(store.save.call_args) > 1 else [])
 
     def test_check_json_format(self, tmp_path):
         """Test check command with JSON output."""
