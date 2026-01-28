@@ -22,8 +22,8 @@ jobs:
       - name: Run action (default inputs)
         uses: ./
         with:
-          target_dir: 'examples/hexagonal-app/'
-          model: examples/hexagonal-app/architecture.yml
-          rules: examples/hexagonal-app/rules.pacta.yml
+          target_dir: 'examples/simple-layered-app/'
+          model: examples/simple-layered-app/architecture.yml
+          rules: examples/simple-layered-app/rules.pacta.yml
           fail-on-violations: "false"
           pacta-version: "local"
