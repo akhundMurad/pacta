@@ -43,12 +43,7 @@ runs:
 
     - name: Install Pacta
       shell: bash
-      run: |
-        if [ "${{ inputs.pacta-version }}" = "local" ]; then
-          pip install .
-        else
-          pip install "${{ inputs.pacta-version }}"
-        fi
+      run: pip install "${{ inputs.pacta-version }}"
 
     - name: Run Architecture Check
       id: pacta
