@@ -84,6 +84,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -96,33 +97,17 @@ jobs:
       - name: Generate release notes
         run: git cliff --latest --strip header -o RELEASE_NOTES.md
 
-      - name: Commit changelog to branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          BRANCH="changelog/${{ github.ref_name }}-${{ github.run_id }}"
-          git checkout -b "$BRANCH"
-
-          git add CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "No changelog changes; skipping commit + PR."
-            exit 0
-          fi
-
-          git commit -m "chore: update changelog for ${{ github.ref_name }}"
-          git push --force-with-lease origin "$BRANCH"
-
       - name: Create pull request for changelog
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
-          branch: changelog/${{ github.ref_name }}-${{ github.run_id }}
+          branch: changelog/${{ github.ref_name }}
           title: "chore: update changelog for ${{ github.ref_name }}"
           body: |
             Automated changelog update for `${{ github.ref_name }}`.
           commit-message: "chore: update changelog for ${{ github.ref_name }}"
+          add-paths: CHANGELOG.md
 
       - name: Upload release notes
         uses: actions/upload-artifact@v4
