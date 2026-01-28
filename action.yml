@@ -1,0 +1,103 @@
+name: 'Pacta Architecture Review'
+description: 'Run architecture checks and post a rich PR comment describing architectural changes'
+branding:
+  icon: 'layers'
+  color: 'blue'
+
+inputs:
+  model:
+    description: 'Path to architecture.yml'
+    required: false
+    default: 'architecture.yml'
+  rules:
+    description: 'Path to rules.pacta.yml'
+    required: false
+    default: 'rules.pacta.yml'
+  baseline:
+    description: 'Baseline ref name (omit to skip baseline comparison)'
+    required: false
+    default: ''
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.11'
+  fail-on-violations:
+    description: 'Fail the check if new violations are found'
+    required: false
+    default: 'true'
+  pacta-version:
+    description: 'Pacta version to install (default: latest)'
+    required: false
+    default: 'pacta'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Pacta
+      shell: bash
+      run: pip install ${{ inputs.pacta-version }}
+
+    - name: Run Architecture Check
+      id: pacta
+      shell: bash
+      run: |
+        ARGS="--model ${{ inputs.model }} --rules ${{ inputs.rules }}"
+        if [ -n "${{ inputs.baseline }}" ]; then
+          ARGS="$ARGS --baseline ${{ inputs.baseline }}"
+        fi
+
+        # Generate GitHub Markdown comment
+        pacta scan . $ARGS --format github > "$RUNNER_TEMP/pacta-comment.md" || true
+
+        # Generate JSON for machine-readable results
+        pacta scan . $ARGS --format json > "$RUNNER_TEMP/pacta-results.json" || true
+
+        # Extract new violation count
+        NEW=$(jq '.summary.by_status.new // 0' "$RUNNER_TEMP/pacta-results.json" 2>/dev/null || echo 0)
+        echo "new_violations=$NEW" >> "$GITHUB_OUTPUT"
+
+    - name: Post or Update PR Comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const commentPath = '${{ runner.temp }}/pacta-comment.md';
+          const body = fs.readFileSync(commentPath, 'utf8');
+          const marker = '<!-- pacta-architecture-report -->';
+          const fullBody = marker + '\n' + body;
+
+          // Find existing comment to update (idempotent)
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          const existing = comments.find(c => c.body.startsWith(marker));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body: fullBody,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: fullBody,
+            });
+          }
+
+    - name: Fail on New Violations
+      if: inputs.fail-on-violations == 'true' && steps.pacta.outputs.new_violations != '0'
+      shell: bash
+      run: |
+        echo "::error::Pacta found ${{ steps.pacta.outputs.new_violations }} new architectural violation(s)"
+        exit 1
