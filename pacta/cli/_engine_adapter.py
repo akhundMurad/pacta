@@ -95,7 +95,7 @@ def run_engine_scan(
         metadata={},
     )
 
-    builder = DefaultReportBuilder(tool="pacta", version=tool_version or "0.0.6")
+    builder = DefaultReportBuilder(tool="pacta", version=tool_version or "0.0.7")
 
     if isinstance(res, Mapping):
         violations = res.get("violations", ())

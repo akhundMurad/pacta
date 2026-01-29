@@ -71,7 +71,7 @@ class DefaultReportBuilder:
     - Summary counts
     """
 
-    def __init__(self, *, tool: str = "pacta", version: str = "0.0.6") -> None:
+    def __init__(self, *, tool: str = "pacta", version: str = "0.0.7") -> None:
         self._tool = tool
         self._version = version
 
