@@ -106,7 +106,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: pacta-dev/pacta-cli/pacta@main
+      - uses: pacta-dev/pacta-cli@main
         with:
           model: architecture.yml
           rules: rules.pacta.yml
