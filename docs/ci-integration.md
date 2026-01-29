@@ -119,10 +119,15 @@ The action will:
 - Post (or update) a PR comment with structural changes, new/fixed violations, and architecture trends
 - Fail the check if new violations are introduced (configurable via `fail-on-violations: false`)
 
+**Example comment:**
+
+![Github Action output example](https://raw.githubusercontent.com/akhundMurad/pacta/main/assets/github-action-example.png)
+
 **Action Inputs:**
 
 | Input | Default | Description |
 |-------|---------|-------------|
+| `target_dir` | `.` | Repository root |
 | `model` | `architecture.yml` | Path to architecture model |
 | `rules` | `rules.pacta.yml` | Path to rules file |
 | `baseline` | *(none)* | Baseline ref for incremental checks |
