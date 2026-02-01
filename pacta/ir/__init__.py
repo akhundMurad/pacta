@@ -17,7 +17,7 @@ from pacta.ir.keys import (
 # IR processing
 from pacta.ir.merge import DefaultIRMerger
 from pacta.ir.normalize import DefaultIRNormalizer
-from pacta.ir.select import match_glob, match_regex, match_any_glob
+from pacta.ir.select import match_any_glob, match_glob, match_regex
 from pacta.ir.types import (
     ArchitectureIR,
     CanonicalId,
