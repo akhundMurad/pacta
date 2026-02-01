@@ -144,6 +144,10 @@ class IRNode:
     context: str | None = None
     tags: tuple[str, ...] = field(default_factory=tuple)
 
+    # v2: service-level enrichment
+    service: str | None = None  # top-level container ancestor
+    container_kind: str | None = None  # container kind (service/module/library)
+
     attributes: Mapping[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -157,6 +161,8 @@ class IRNode:
             "layer": self.layer,
             "context": self.context,
             "tags": list(self.tags),
+            "service": self.service,
+            "container_kind": self.container_kind,
             "attributes": dict(self.attributes),
         }
 
@@ -172,6 +178,8 @@ class IRNode:
             layer=data.get("layer"),
             context=data.get("context"),
             tags=tuple(data.get("tags", [])),
+            service=data.get("service"),
+            container_kind=data.get("container_kind"),
             attributes=dict(data.get("attributes", {})),
         )
 
@@ -201,6 +209,12 @@ class IREdge:
     dst_layer: str | None = None
     dst_context: str | None = None
 
+    # v2: service-level enrichment
+    src_service: str | None = None
+    dst_service: str | None = None
+    src_container_kind: str | None = None
+    dst_container_kind: str | None = None
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "src": self.src.to_dict(),
@@ -215,6 +229,10 @@ class IREdge:
             "dst_container": self.dst_container,
             "dst_layer": self.dst_layer,
             "dst_context": self.dst_context,
+            "src_service": self.src_service,
+            "dst_service": self.dst_service,
+            "src_container_kind": self.src_container_kind,
+            "dst_container_kind": self.dst_container_kind,
         }
 
     @staticmethod
@@ -232,6 +250,10 @@ class IREdge:
             dst_container=data.get("dst_container"),
             dst_layer=data.get("dst_layer"),
             dst_context=data.get("dst_context"),
+            src_service=data.get("src_service"),
+            dst_service=data.get("dst_service"),
+            src_container_kind=data.get("src_container_kind"),
+            dst_container_kind=data.get("dst_container_kind"),
         )
 
 
@@ -265,7 +287,7 @@ class ArchitectureIR:
         Convenience constructor for an empty IR.
         """
         return cls(
-            schema_version=1,
+            schema_version=2,
             produced_by="pacta-core",
             repo_root=str(repo_root),
             nodes=(),
