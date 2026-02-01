@@ -706,8 +706,12 @@ def test_enricher_v2_nested_container_deepest_match():
         path="services/billing/domain/invoice/model/entity.py",
     )
     ir = ArchitectureIR(
-        schema_version=2, produced_by="test", repo_root="/test",
-        nodes=(node,), edges=(), metadata={},
+        schema_version=2,
+        produced_by="test",
+        repo_root="/test",
+        nodes=(node,),
+        edges=(),
+        metadata={},
     )
 
     enriched = DefaultArchitectureEnricher().enrich(ir, model)
@@ -731,8 +735,12 @@ def test_enricher_v2_parent_container_match():
         path="services/billing/api/routes.py",
     )
     ir = ArchitectureIR(
-        schema_version=2, produced_by="test", repo_root="/test",
-        nodes=(node,), edges=(), metadata={},
+        schema_version=2,
+        produced_by="test",
+        repo_root="/test",
+        nodes=(node,),
+        edges=(),
+        metadata={},
     )
 
     enriched = DefaultArchitectureEnricher().enrich(ir, model)
@@ -754,8 +762,12 @@ def test_enricher_v2_library_container():
         path="libs/shared/util.py",
     )
     ir = ArchitectureIR(
-        schema_version=2, produced_by="test", repo_root="/test",
-        nodes=(node,), edges=(), metadata={},
+        schema_version=2,
+        produced_by="test",
+        repo_root="/test",
+        nodes=(node,),
+        edges=(),
+        metadata={},
     )
 
     enriched = DefaultArchitectureEnricher().enrich(ir, model)
@@ -783,8 +795,12 @@ def test_enricher_v2_edge_service_and_kind():
     edge = IREdge(src=src_node.id, dst=dst_node.id, dep_type=DepType.IMPORT)
 
     ir = ArchitectureIR(
-        schema_version=2, produced_by="test", repo_root="/test",
-        nodes=(src_node, dst_node), edges=(edge,), metadata={},
+        schema_version=2,
+        produced_by="test",
+        repo_root="/test",
+        nodes=(src_node, dst_node),
+        edges=(edge,),
+        metadata={},
     )
 
     enriched = DefaultArchitectureEnricher().enrich(ir, model)
@@ -806,8 +822,12 @@ def test_enricher_v2_unmatched_node_has_no_service():
         path="other/utils.py",
     )
     ir = ArchitectureIR(
-        schema_version=2, produced_by="test", repo_root="/test",
-        nodes=(node,), edges=(), metadata={},
+        schema_version=2,
+        produced_by="test",
+        repo_root="/test",
+        nodes=(node,),
+        edges=(),
+        metadata={},
     )
 
     enriched = DefaultArchitectureEnricher().enrich(ir, model)

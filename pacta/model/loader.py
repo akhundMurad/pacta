@@ -170,14 +170,14 @@ class DefaultArchitectureModelLoader:
                     )
                 try:
                     kind = ContainerKind(str(raw_kind))
-                except ValueError:
+                except ValueError as ex:
                     raise ModelLoadError(
                         code="invalid_container_kind",
                         message=(
                             f"Container '{cid}' has invalid kind '{raw_kind}'. "
                             f"Must be one of: {', '.join(k.value for k in ContainerKind)}."
                         ),
-                    )
+                    ) from ex
                 raw_contains = spec.get("contains")
                 if raw_contains is not None:
                     children = self._parse_containers(raw_contains, version=version)
