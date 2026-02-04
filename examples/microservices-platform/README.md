@@ -24,8 +24,19 @@ The platform consists of three containers:
 The rules demonstrate v2-specific fields:
 
 - `from.service != to.service` — detect cross-service dependencies
-- `from.kind == library` / `to.kind == service` — enforce library independence
+- `from.within == library` / `to.within == service` — enforce library independence
 - `from.layer` / `to.layer` — standard layer constraints
+
+### `kind` vs `within`
+
+For nested containers, there's an important distinction:
+
+| Field | Meaning | Example |
+|-------|---------|---------|
+| `kind` | Immediate container's kind | `module` for code in `invoice-module` |
+| `within` | Top-level container's kind | `service` for any code inside `billing-service` |
+
+**Why use `within`?** Using `to.kind == service` would NOT match code inside nested modules (like `invoice-module`), because the immediate kind is `module`. Using `to.within == service` matches ANY code inside the service hierarchy.
 
 ## Running
 
@@ -33,3 +44,5 @@ The rules demonstrate v2-specific fields:
 cd examples/microservices-platform
 pacta scan . --model architecture.yml --rules rules.pacta.yml
 ```
+
+This will detect a violation because `libs/shared/money.py` imports from `services/billing/domain/invoice/model/invoice.py`.

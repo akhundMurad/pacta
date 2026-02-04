@@ -146,7 +146,8 @@ class IRNode:
 
     # v2: service-level enrichment
     service: str | None = None  # top-level container ancestor
-    container_kind: str | None = None  # container kind (service/module/library)
+    container_kind: str | None = None  # immediate container kind (service/module/library)
+    within: str | None = None  # top-level container's kind (for nested containers)
 
     attributes: Mapping[str, Any] = field(default_factory=dict)
 
@@ -163,6 +164,7 @@ class IRNode:
             "tags": list(self.tags),
             "service": self.service,
             "container_kind": self.container_kind,
+            "within": self.within,
             "attributes": dict(self.attributes),
         }
 
@@ -180,6 +182,7 @@ class IRNode:
             tags=tuple(data.get("tags", [])),
             service=data.get("service"),
             container_kind=data.get("container_kind"),
+            within=data.get("within"),
             attributes=dict(data.get("attributes", {})),
         )
 
@@ -214,6 +217,8 @@ class IREdge:
     dst_service: str | None = None
     src_container_kind: str | None = None
     dst_container_kind: str | None = None
+    src_within: str | None = None  # top-level container's kind for source
+    dst_within: str | None = None  # top-level container's kind for destination
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -233,6 +238,8 @@ class IREdge:
             "dst_service": self.dst_service,
             "src_container_kind": self.src_container_kind,
             "dst_container_kind": self.dst_container_kind,
+            "src_within": self.src_within,
+            "dst_within": self.dst_within,
         }
 
     @staticmethod
@@ -254,6 +261,8 @@ class IREdge:
             dst_service=data.get("dst_service"),
             src_container_kind=data.get("src_container_kind"),
             dst_container_kind=data.get("dst_container_kind"),
+            src_within=data.get("src_within"),
+            dst_within=data.get("dst_within"),
         )
 
 

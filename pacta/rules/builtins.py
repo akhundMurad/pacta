@@ -91,7 +91,8 @@ def get_node_field(node: IRNode, path: str) -> Any:
 
     Supported paths:
       - symbol_kind (SymbolKind — file, module, class, etc.)
-      - kind (container kind — service, module, library)
+      - kind (immediate container kind — service, module, library)
+      - within (top-level container's kind — for nested containers)
       - service (top-level container ancestor)
       - path, name, layer, context, container, tags
       - fqname (node.id.fqname)
@@ -107,6 +108,8 @@ def get_node_field(node: IRNode, path: str) -> Any:
         return node.kind.value
     if p == "kind":
         return node.container_kind
+    if p == "within":
+        return node.within
     if p == "service":
         return node.service
     if p == "path":
@@ -143,7 +146,8 @@ def get_edge_field(edge: IREdge, path: str) -> Any:
       - from.context / to.context
       - from.container / to.container
       - from.service / to.service
-      - from.kind / to.kind (container kind)
+      - from.kind / to.kind (immediate container kind)
+      - from.within / to.within (top-level container's kind)
       - from.fqname / to.fqname
       - from.id / to.id
       - dep.type
@@ -175,6 +179,11 @@ def get_edge_field(edge: IREdge, path: str) -> Any:
         return edge.src_container_kind
     if p == "to.kind":
         return edge.dst_container_kind
+
+    if p == "from.within":
+        return edge.src_within
+    if p == "to.within":
+        return edge.dst_within
 
     if p == "from.fqname":
         return edge.src.fqname
